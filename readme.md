@@ -80,7 +80,9 @@ A full-stack web application that allows users to input custom project requireme
 
 ## 📸 Sample Screenshot
 
-![App Preview](https://drive.google.com/file/d/1_8xYZsP4bmLxZwoIYBpmtweWdnfqaweu/view?usp=drivesdk)
+<p align="center">
+  <img src="(https://drive.google.com/file/d/1_8xYZsP4bmLxZwoIYBpmtweWdnfqaweu/view?usp=drivesdk" alt="App Screenshot" width="600"/>
+</p>
 
 
 
