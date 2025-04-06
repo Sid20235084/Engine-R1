@@ -43,7 +43,7 @@ A full-stack web application that allows users to input custom project requireme
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/your-username/mern-ai-code-generator.git
+   git clone https://github.com/Sid20235084/Engine-R1.git
    ```
 
 2. **Install dependencies:**
