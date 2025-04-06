@@ -2,87 +2,93 @@ import { GoogleGenAI } from '@google/genai';
 
 const ai = new GoogleGenAI({ apiKey: process.env.GOOGLE_GEMINI_KEY });
 
+function escapeControlChars(str) {
+  // This regex matches control characters (except newline \n and tab \t)
+  return str.replace(/[\x00-\x08\x0B-\x1F\x7F]/g, (c) => {
+    return '\\u' + ('000' + c.charCodeAt(0).toString(16)).slice(-4);
+  });
+}
+
 async function generateCode(Instructions) {
+  let resultText = '';
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-2.0-flash',
+      model: 'gemini-2.5-pro-exp-03-25',
       contents: `${Instructions}`,
       config: {
-        systemInstruction: `You are an expert full-stack developer specializing in generating production-ready code. Your task is to analyze the user's requirements and generate complete, deployment-ready code following modern best practices.
+        systemInstruction: `
+        You are a senior MERN stack developer with 10+ years of experience.
+        Your responses must always return a JSON object with these keys:
+        - "text": a description of the generated project
+        - "fileTree": a mapping of file paths to file contents (each file has a "file": { "contents": "..." } structure)
+        - "buildCommand": an object with fields "mainItem" and "commands" (for reference only)
+        - "startCommand": an object with fields "mainItem" and "commands" (for reference only)
 
-When generating code, ensure to:
+        Please generate a full MERN stack project with the following specifications:
 
-1. Project Structure:
-   - Create a well-organized directory structure
-   - Set up proper configuration files
-   - Include necessary dependencies
-   - Add environment configuration
-   - Include Docker setup if applicable
+        Backend:
+        - Use Express, MongoDB, and Mongoose.
+        - Create a modular folder structure with folders such as routes, controllers, models, middlewares, and config.
+        - Implement a simple user authentication system with routes under /api/users (supporting GET and POST).
+        - Define a User model with fields: name, email, password.
+        - Use dotenv and cors.
+        - Generate a .env.example file in the server folder with these keys and placeholder values:
+            PORT=5000
+            MONGO_URI=your_mongo_uri_here
+            JWT_SECRET=your_jwt_secret_here
+        - Include a package.json with a "start" script.
 
-2. Code Implementation:
-   - Follow clean code principles
-   - Implement proper error handling
-   - Add comprehensive logging
-   - Include input validation
-   - Follow security best practices
+        Frontend:
+        - Use React with Vite and TailwindCSS.
+        - Create a simple UI with a Home page and a Users page that fetches data from /api/users.
+        - Use a modular folder structure in the client folder.
+        - Generate a .env.example file in the client folder if any environment variables are needed.
+        - Include a package.json with a "dev" script.
 
-3. Testing:
-   - Add unit tests
-   - Include integration tests
-   - Add test coverage reporting
-   - Include test documentation
+        General:
+        - Do not install dependencies or run the server; only generate all necessary files.
+        - Return the fileTree in JSON format with every file's contents.
+        - Do not use file names like routes/index.js; use descriptive file names instead.
 
-4. Documentation:
-   - Add README with setup instructions
-   - Include API documentation
-   - Add inline code comments
-   - Include deployment guide
+        Return the output in JSON exactly in the following format:
 
-5. DevOps:
-   - Add CI/CD configuration
-   - Include monitoring setup
-   - Add health checks
-   - Include scaling configurations
-
-Format your response as follows:
-1. Project Overview
-   - Brief description
-   - Tech stack used
-   - Key features
-
-2. Directory Structure
-   - Complete folder layout
-   - File organization
-
-3. Implementation
-   - Core code files
-   - Configuration files
-   - Test files
-   - Documentation
-
-4. Setup Instructions
-   - Installation steps
-   - Environment setup
-   - Running tests
-   - Deployment guide
-
-5. Additional Notes
-   - Security considerations
-   - Performance optimizations
-   - Scaling recommendations
-
-Ensure all generated code is:
-- Production-ready
-- Well-documented
-- Properly tested
-- Following best practices
-- Ready for deployment`
+        {
+          "text": "Description of the file structure",
+          "fileTree": {
+            "server/app.js": { "file": { "contents": "..." } },
+            "server/package.json": { "file": { "contents": "..." } },
+            "server/.env.example": { "file": { "contents": "..." } },
+            "client/index.html": { "file": { "contents": "..." } },
+            "client/src/App.jsx": { "file": { "contents": "..." } },
+            "client/package.json": { "file": { "contents": "..." } },
+            "client/.env.example": { "file": { "contents": "..." } }
+          },
+          "buildCommand": { "mainItem": "npm", "commands": ["install"] },
+          "startCommand": { "mainItem": "node", "commands": ["app.js"] }
+        }
+        `,
       },
     });
-    return response.text;
+
+    resultText = await response.text;
+
+    // Strip markdown code fences if present
+    resultText = resultText.trim();
+    if (resultText.startsWith('```')) {
+      const lines = resultText.split('\n');
+      lines.shift();
+      lines.pop();
+      resultText = lines.join('\n').trim();
+    }
+
+    // Escape control characters in the text
+    resultText = escapeControlChars(resultText);
+
+    return JSON.parse(resultText);
   } catch (error) {
-    console.error('Error generating content:', error);
-    throw error;
+    console.error("❌ Response is not valid JSON. Raw output:\n", resultText);
+    console.error("Error:", error.message || error);
+    return { error: 'Failed to parse Gemini response.' };
   }
 }
 

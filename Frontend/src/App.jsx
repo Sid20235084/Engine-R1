@@ -1,15 +1,12 @@
-import { useState, useEffect } from 'react'
-import "prismjs/themes/prism-tomorrow.css"
-import Editor from "react-simple-code-editor"
-import prism from "prismjs"
-import Markdown from "react-markdown"
-import rehypeHighlight from "rehype-highlight";
-import "highlight.js/styles/github-dark.css";
-import axios from 'axios'
-import './App.css'
+import { useState, useEffect } from 'react';
+import "prismjs/themes/prism-tomorrow.css";
+import Editor from "react-simple-code-editor";
+import prism from "prismjs";
+import axios from 'axios';
+import './App.css';
 
 function App() {
-  const [ code, setCode ] = useState(`Project Name: [Your Project Name]
+  const [code, setCode] = useState(`Project Name: [Your Project Name]
 Description: [Brief description of your project]
 
 Tech Stack:
@@ -19,109 +16,112 @@ Tech Stack:
 - Additional Tools: [e.g., Docker, Redis]
 
 Features:
-[Describe key features, one per line]
 - Feature 1
 - Feature 2
 - Feature 3
 
 Security Requirements:
-[List security requirements]
 - Authentication method
 - Data protection
 - API security
 
 Code Quality Requirements:
-[List code quality requirements]
 - Testing coverage
 - Code style
-- Documentation requirements`)
-  const [ review, setReview ] = useState(``)
-  const [ isLoading, setIsLoading ] = useState(false)
+- Documentation requirements`);
+
+  const [review, setReview] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    prism.highlightAll()
-  }, [])
+    prism.highlightAll();
+  }, []);
 
   async function generateCode() {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
-      const response = await axios.post('http://localhost:3000/ai/generate-code', { Instructions: code })
-      setReview(response.data)
+      const response = await axios.post('http://localhost:3000/ai/generate-code', { Instructions: code });
+      setReview("✅ Files generated successfully. Check the `server/` and `client/` folders in your project.");
     } catch (error) {
-      console.error('Error generating code:', error)
-      setReview('Error: Failed to generate code. Please try again.')
+      console.error('Error generating code:', error);
+      setReview('❌ Error: Failed to generate code. Please try again.');
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
   }
 
   return (
-    <>
-      <main>
-        <div className="left">
-          <div className="editor-container">
-            <div className="editor-header">
-              <h2>Project Requirements</h2>
-            </div>
-            <div className="code">
-              <Editor
-                value={code}
-                onValueChange={newCode => setCode(newCode)}
-                highlight={code => prism.highlight(code, prism.languages.plaintext, "plaintext")}
-                padding={10}
-                style={{
-                  fontFamily: '"Fira code", "Fira Mono", monospace',
-                  fontSize: 14,
-                  border: "1px solid #444",
-                  borderRadius: "5px",
-                  height: "100%",
-                  width: "100%",
-                  backgroundColor: "#1e1e1e",
-                  color: "#fff"
-                }}
-              />
-            </div>
-          </div>
-          <button
-            onClick={generateCode}
-            className={`generate-button ${isLoading ? 'loading' : ''}`}
-            disabled={isLoading}
-          >
-            {isLoading ? 'Generating...' : 'Generate Code'}
-          </button>
+    <main style={{ display: 'flex', height: '100vh', padding: '1rem', backgroundColor: '#121212', color: '#fff' }}>
+      {/* Left Panel */}
+      <div style={{ flex: 1, marginRight: '1rem', display: 'flex', flexDirection: 'column' }}>
+        <h2 style={{ marginBottom: '0.5rem' }}>📝 Project Requirements</h2>
+        <div
+          style={{
+            flex: 1,
+            border: '1px solid #444',
+            borderRadius: '8px',
+            backgroundColor: '#1e1e1e',
+            overflow: 'auto',
+            padding: '0.5rem'
+          }}
+        >
+          <Editor
+            value={code}
+            onValueChange={setCode}
+            highlight={code => prism.highlight(code, prism.languages.plaintext, "plaintext")}
+            padding={10}
+            style={{
+              fontFamily: '"Fira Code", monospace',
+              fontSize: 14,
+              backgroundColor: '#1e1e1e',
+              color: '#fff',
+              minHeight: '100%',
+            }}
+          />
         </div>
-        <div className="right">
+        <button
+          onClick={generateCode}
+          disabled={isLoading}
+          style={{
+            marginTop: '1rem',
+            padding: '0.75rem 1.5rem',
+            backgroundColor: isLoading ? '#555' : '#4caf50',
+            border: 'none',
+            borderRadius: '5px',
+            color: '#fff',
+            cursor: isLoading ? 'not-allowed' : 'pointer',
+            fontSize: '1rem'
+          }}
+        >
+          {isLoading ? 'Generating...' : '🚀 Generate Files'}
+        </button>
+      </div>
+
+      {/* Right Panel */}
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+        <h2 style={{ marginBottom: '0.5rem' }}>📂 Output</h2>
+        <div
+          style={{
+            flex: 1,
+            border: '1px solid #444',
+            borderRadius: '8px',
+            backgroundColor: '#1e1e1e',
+            padding: '1rem',
+            overflow: 'auto',
+            whiteSpace: 'pre-wrap',
+            fontFamily: '"Fira Code", monospace',
+            fontSize: 14
+          }}
+        >
           {isLoading ? (
-            <div className="loading-container">
-              <div className="loading-spinner"></div>
-              <p>Generating code...</p>
-            </div>
+            <p style={{ color: '#ccc' }}>⏳ Generating code...</p>
           ) : (
-            <div className="review-content">
-              <Markdown
-                rehypePlugins={[rehypeHighlight]}
-                components={{
-                  h1: ({node, ...props}) => <h1 className="review-heading" {...props} />,
-                  h2: ({node, ...props}) => <h2 className="review-subheading" {...props} />,
-                  h3: ({node, ...props}) => <h3 className="review-subheading" {...props} />,
-                  p: ({node, ...props}) => <p className="review-paragraph" {...props} />,
-                  ul: ({node, ...props}) => <ul className="review-list" {...props} />,
-                  li: ({node, ...props}) => <li className="review-list-item" {...props} />,
-                  code: ({node, inline, ...props}) => 
-                    inline ? 
-                      <code className="review-inline-code" {...props} /> : 
-                      <code className="review-code-block" {...props} />,
-                  pre: ({node, ...props}) => <pre className="review-pre" {...props} />
-                }}
-              >
-                {review}
-              </Markdown>
-            </div>
+            review || <p style={{ color: '#888' }}>Output will appear here after generation.</p>
           )}
         </div>
-      </main>
-    </>
-  )
+      </div>
+    </main>
+  );
 }
 
-export default App
+export default App;
