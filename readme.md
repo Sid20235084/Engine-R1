@@ -14,7 +14,6 @@ A full-stack web application that allows users to input custom project requireme
 - 🤖 Uses Gemini AI to generate project structure and code
 - 📁 Automatically saves generated files into folders (`/client`, `/server`, etc.)
 - 🖥️ Rich code editor with live markdown preview (upcoming)
-- 🔒 Environment-variable-based configuration
 
 ---
 
